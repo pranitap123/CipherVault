@@ -1,0 +1,5 @@
+model File{
+    id String @id @default(uuid())
+    ownerId String @map("owner_id")
+    iv Bytes
+}

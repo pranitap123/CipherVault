@@ -1,0 +1,5 @@
+Q: Why use @map in Prisma?
+One-line: It decouples the ORM field name from the physical DB column, so TypeScript stays camelCase and Postgres stays snake_case.
+Mid-level: Prisma models default to matching column names to field names. @map (column) and @@map (table) override that, letting each layer follow its own naming convention without leaking the other's style into your code or your schema.
+Senior: It's an anti-corruption seam between application and persistence naming. Matters most against a pre-existing or team-shared database whose conventions you don't control — you adapt at the ORM boundary instead of polluting either side. Trade-off: a layer of indirection, so the field and column names can drift apart if not disciplined.
+Follow-up they'll ask: "What about @@map?" (table-level). "What happens if you omit it?" (Prisma uses the field name as the column name verbatim).
