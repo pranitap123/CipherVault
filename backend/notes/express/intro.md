@@ -75,3 +75,10 @@ Express gives more flexibility and is easier to understand while learning backen
 - Express provides the web framework.
 - Express simplifies building REST APIs.
 - Express is built on top of Node's HTTP module.
+
+## package.json
+
+read your own package.json and confirm you can see why each thing landed where it did:
+
+dependencies: express (the server needs it at runtime) + @prisma/client (your code calls it to query the DB). Both ship to production. ✓
+devDependencies: typescript, tsx, the two @types/*, prisma CLI — all build/dev-time only. None ship to production. ✓
