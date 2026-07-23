@@ -1,5 +1,7 @@
 # tsconfig.json
 
+Concept: TypeScript isn't run directly by Node — it gets translated ("compiled") into plain JavaScript first. tsconfig.json is the instruction sheet for that translation: what JS version to output, which files to include, how strict to be about type errors, where compiled output goes. Get it wrong and you get confusing errors; get it right once and forget about it.
+
 ## What is tsconfig.json?
 
 tsconfig.json is the configuration file for the TypeScript compiler.
