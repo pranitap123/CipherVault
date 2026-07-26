@@ -19,3 +19,14 @@ model File{
     updatedAt DateTime @updatedAt @map("updated_at")
      @@map("files")
 }
+
+model User{
+  id String @id @default(uuid())
+  email String @unique
+  password String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
