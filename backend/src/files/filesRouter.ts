@@ -1,7 +1,7 @@
 import multer from "multer";
 import { Router } from "express";
 import { authenticate } from "../middlewares/authenticate.js";
-import { uploadFile } from "./filesController.js";
+import { uploadFile, downloadFile } from "./filesController.js";
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -10,5 +10,11 @@ const upload = multer({
 const fileRouter = Router();
 
 fileRouter.post("/", authenticate, upload.single("file"), uploadFile);
+
+fileRouter.get(
+    "/:id",
+    authenticate,
+    downloadFile
+);
 
 export default fileRouter;
