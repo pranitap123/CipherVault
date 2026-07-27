@@ -3,8 +3,8 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
-
-import { encrypt } from "../services/encryption.service.js";
+import fsPromises from "fs/promises";
+import { encrypt, decrypt } from "../services/encryption.service.js";
 
 const prisma = new PrismaClient();
 
@@ -68,3 +68,50 @@ export async function uploadFile(req: Request, res: Response) {
         },
     });
 }
+
+export async function downloadFile(req: Request, res: Response){
+        const fileId = req.params.id as string;
+        const ownerId = req.userId;
+
+        if(!ownerId){
+            return res.status(401).json({
+                message:"Unauthorized",
+            });
+        }
+
+        const file = await prisma.file.findUnique({
+            where: {
+                id: fileId,
+            },
+        });
+    
+        // Step 3: Check if the file exists
+        if (!file) {
+            return res.status(404).json({
+                message: "File not found",
+            });
+        }
+        if (file.ownerId !== ownerId) {
+            return res.status(403).json({
+                message: "Forbidden",
+            });
+        }
+ const encryptedFile = await fsPromises.readFile(file.storagePath);
+
+ const decryptedFile = decrypt(
+    encryptedFile,
+    Buffer.from(file.iv)
+);
+
+res.setHeader("Content-Type", file.mimeType);
+
+    // Step 8: Tell the browser to download it
+    res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${file.filename}"`
+    );
+
+    // Step 9: Send the original file
+    return res.send(decryptedFile);
+}
+
