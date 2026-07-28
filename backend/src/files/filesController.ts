@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import fsPromises from "fs/promises";
 import { encrypt, decrypt } from "../services/encryption.service.js";
 
+
 const prisma = new PrismaClient();
 
 export async function uploadFile(req: Request, res: Response) {
@@ -115,3 +116,40 @@ res.setHeader("Content-Type", file.mimeType);
     return res.send(decryptedFile);
 }
 
+export async function listFiles(req: Request, res: Response) {
+    try{
+        const ownerId = req.userId;    
+
+        const files = await prisma.file.findMany({
+            where: {
+                ownerId,
+            },
+            select: {
+                id: true,
+                filename: true,
+                mimeType: true,
+                sizeBytes: true,
+                createdAt: true,
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
+
+        const response = files.map((file) => ({
+            ...file,
+            sizeBytes: file.sizeBytes.toString(),
+        }));
+
+        return res.status(200).json({
+            files: response,
+        });
+    
+    } catch (error) {
+        console.error("List Files Error:", error);
+    
+        return res.status(500).json({
+            message: "Internal server error",
+        });
+    }
+}
