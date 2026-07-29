@@ -153,3 +153,52 @@ export async function listFiles(req: Request, res: Response) {
         });
     }
 }
+
+export async function deleteFile(req: Request, res: Response) {
+     try{
+
+        const ownerId = req.userId;
+        const fileId = Array.isArray(req.params.id)
+    ? req.params.id[0]
+    : req.params.id;
+
+        const file = await prisma.file.findUnique({
+            where: {
+                id: fileId,
+            }
+        })
+
+        if(!file){
+            return res.status(404).json({
+                message: "File not found",
+            });
+        }
+
+        if(file.ownerId !== ownerId){
+            return res.status(403).json({
+                message: "Access denied",
+            });
+        }
+
+        await fsPromises.unlink(file.storagePath);
+
+        await prisma.file.delete({
+            where: {
+                id: fileId,
+            },
+        });
+
+        return res.status(200).json({
+            message: "File deleted successfully",
+        });
+
+
+     } catch(error){
+        console.log("error");
+
+        return res.status(500).json({
+            message: "Internal server error",
+        });
+     }
+
+}
