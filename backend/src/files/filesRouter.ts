@@ -5,6 +5,7 @@ import {
     uploadFile,
     downloadFile,
     listFiles,
+    deleteFile,
 } from "./filesController.js";
 
 const upload = multer({
@@ -13,7 +14,12 @@ const upload = multer({
 
 const fileRouter = Router();
 
-fileRouter.post("/", authenticate, upload.single("file"), uploadFile);
+fileRouter.post(
+    "/",
+    authenticate,
+    upload.single("file"),
+    uploadFile
+);
 
 fileRouter.get(
     "/:id",
@@ -25,6 +31,12 @@ fileRouter.get(
     "/",
     authenticate,
     listFiles
-)
+);
+
+fileRouter.delete(
+    "/:id",
+    authenticate,
+    deleteFile
+);
 
 export default fileRouter;
