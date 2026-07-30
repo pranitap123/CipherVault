@@ -7,6 +7,11 @@ import {
     listFiles,
     deleteFile,
 } from "./filesController.js";
+import { fileIdSchema } from "../validations/file.validation.js";
+import {
+    validateParams,
+    validateFileUpload,
+} from "../middlewares/validation.js";
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -18,12 +23,14 @@ fileRouter.post(
     "/",
     authenticate,
     upload.single("file"),
+    validateFileUpload,
     uploadFile
 );
 
 fileRouter.get(
     "/:id",
     authenticate,
+    validateParams(fileIdSchema),
     downloadFile
 );
 
@@ -36,6 +43,7 @@ fileRouter.get(
 fileRouter.delete(
     "/:id",
     authenticate,
+    validateParams(fileIdSchema),
     deleteFile
 );
 
