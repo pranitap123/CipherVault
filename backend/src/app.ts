@@ -5,6 +5,7 @@ import authRouter from "./auth/authRouter.js";
 import fileRouter from "./files/filesRouter.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
+
 const app = express();
 
 app.use(express.json());
