@@ -2,6 +2,7 @@ import { Router } from "express";
 import { register, login } from "./authController.js";
 import { validate } from "../middlewares/validation.js";
 import { registerSchema, loginSchema } from "./auth.validation.js";
+import { authRateLimiter } from "../middlewares/rateLimiter.js";
 
 const router = Router();
 
@@ -50,7 +51,10 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/register", validate(registerSchema), register);
+router.post("/register",  
+ authRateLimiter,
+ validate(registerSchema), 
+ register);
 /**
  * @openapi
  * /auth/login:
@@ -96,6 +100,9 @@ router.post("/register", validate(registerSchema), register);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/login", validate(loginSchema), login);
+router.post("/login", 
+authRateLimiter,
+validate(loginSchema), 
+login);
 
 export default router;
