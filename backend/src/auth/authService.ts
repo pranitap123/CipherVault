@@ -1,10 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
-
+import prisma from "../config/prisma.js";
 import { env } from "../config/env.js";
 
-const prisma = new PrismaClient();
 
 export async function hashPassword(password: string): Promise<string> {
     return await bcrypt.hash(password, 10);

@@ -2,12 +2,9 @@ import { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../config/prisma.js";
 import fsPromises from "fs/promises";
 import { encrypt, decrypt } from "../services/encryption.service.js";
-
-
-const prisma = new PrismaClient();
 
 export async function uploadFile(req: Request, res: Response) {
     // Step 1: Get uploaded file
