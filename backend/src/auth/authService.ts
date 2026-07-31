@@ -38,10 +38,15 @@ export async function registerUser(email: string, password: string) {
     const token = generateToken(user.id);
 
     return {
-        token,
         user: {
             id: user.id,
             email: user.email,
+            name: "",
+            emailVerified: true,
+            createdAt: user.createdAt.toISOString(),
+        },
+        tokens: {
+            accessToken: token,
         },
     };
 }
@@ -74,10 +79,15 @@ export async function loginUser(email: string, password: string) {
     const token = generateToken(user.id);
 
     return {
-        token,
         user: {
             id: user.id,
             email: user.email,
+            name: "",
+            emailVerified: true,
+            createdAt: user.createdAt.toISOString(),
+        },
+        tokens: {
+            accessToken: token,
         },
     };
 }
