@@ -1,19 +1,38 @@
 import dotenv from "dotenv";
+import { z } from "zod";
 
 dotenv.config();
 
-function required(name: string): string {
-    const value = process.env[name];
+const envSchema = z.object({
+    PORT: z.coerce.number().default(3000),
 
-    if (!value) {
-        throw new Error(`Missing required environment variable: ${name}`);
-    }
+    JWT_SECRET: z
+        .string()
+        .min(32, "JWT_SECRET must be at least 32 characters long"),
 
-    return value;
+    ENCRYPTION_KEY: z
+        .string()
+        .length(
+            64,
+            "ENCRYPTION_KEY must be exactly 64 hexadecimal characters"
+        ),
+
+    DATABASE_URL: z
+        .string()
+        .min(1, "DATABASE_URL is required"),
+});
+
+const parsedEnv = envSchema.safeParse(process.env);
+
+if (!parsedEnv.success) {
+    console.error("❌ Invalid environment variables");
+    console.error(parsedEnv.error.format());
+    process.exit(1);
 }
 
 export const env = {
-    port: Number(process.env.PORT) || 3000,
-    encryptionKey: required("ENCRYPTION_KEY"),
-    jwtSecret: required("JWT_SECRET"),
+    port: parsedEnv.data.PORT,
+    jwtSecret: parsedEnv.data.JWT_SECRET,
+    encryptionKey: parsedEnv.data.ENCRYPTION_KEY,
+    databaseUrl: parsedEnv.data.DATABASE_URL,
 };
