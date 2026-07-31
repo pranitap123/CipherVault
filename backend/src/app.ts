@@ -1,5 +1,4 @@
 import express from "express";
-
 import healthRouter from "./routes/health.route.js";
 import authRouter from "./auth/authRouter.js";
 import fileRouter from "./files/filesRouter.js";
@@ -10,6 +9,7 @@ import cors from "cors";
 import compression from "compression";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
+import { globalRateLimiter } from "./middlewares/rateLimiter.js";
 
 const app = express();
 
@@ -20,6 +20,8 @@ app.use(cors());
 app.use(compression());
 
 app.use(express.json());
+
+app.use(globalRateLimiter);
 
 app.use(logger);
 app.use(
