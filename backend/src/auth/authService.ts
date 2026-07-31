@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../config/prisma.js";
 import { env } from "../config/env.js";
+import { auditService } from "../audit/auditService.js";
+import { AuditAction } from "../audit/audit.types.js";
 
 
 export async function hashPassword(password: string): Promise<string> {
@@ -27,6 +29,11 @@ export async function registerUser(email: string, password: string) {
             password: hashedPassword,
         },
     });
+
+    await auditService.log({
+        userId: user.id,
+        action: AuditAction.USER_REGISTER,
+      });
 
     const token = generateToken(user.id);
 
@@ -58,6 +65,11 @@ export async function loginUser(email: string, password: string) {
     if (!passwordMatches) {
         throw new Error("Invalid email or password");
     }
+
+    await auditService.log({
+        userId: user.id,
+        action: AuditAction.USER_LOGIN,
+      });
 
     const token = generateToken(user.id);
 
