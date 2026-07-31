@@ -8,6 +8,8 @@ import { logger } from "./middlewares/logger.js";
 import helmet from "helmet";
 import cors from "cors";
 import compression from "compression";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
 
 const app = express();
 
@@ -20,9 +22,15 @@ app.use(compression());
 app.use(express.json());
 
 app.use(logger);
+app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec)
+);
 app.use("/health", healthRouter);
 app.use("/auth", authRouter);
 app.use("/files", fileRouter);
+
 
 app.use(errorHandler);
 
