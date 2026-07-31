@@ -14,6 +14,35 @@ const http = axios.create({
   },
 });
 
+// ✅ Request Interceptor
+http.interceptors.request.use((config) => {
+    const raw = localStorage.getItem("sv_session");
+  
+    if (raw) {
+      try {
+        const session = JSON.parse(raw) as Session;
+  
+        config.headers.Authorization = `Bearer ${session.tokens.accessToken}`;
+      } catch {
+        localStorage.removeItem("sv_session");
+      }
+    }
+  
+    return config;
+  });
+  
+  // ✅ Response Interceptor
+  http.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("sv_session");
+      }
+  
+      return Promise.reject(error);
+    }
+  );
+
 const ok = <T>(data: T): ApiResult<T> => ({
   ok: true,
   data,
