@@ -26,7 +26,19 @@ model User{
   password String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+   
+  
+  auditLogs   AuditLog[]
 
   @@map("users")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  resource   String?
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
 }
 

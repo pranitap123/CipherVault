@@ -2,12 +2,11 @@ import { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../config/prisma.js";
 import fsPromises from "fs/promises";
 import { encrypt, decrypt } from "../services/encryption.service.js";
-
-
-const prisma = new PrismaClient();
+import { auditService } from "../audit/auditService.js";
+import { AuditAction } from "../audit/audit.types.js";
 
 export async function uploadFile(req: Request, res: Response) {
     // Step 1: Get uploaded file
@@ -59,6 +58,12 @@ export async function uploadFile(req: Request, res: Response) {
         },
     });
 
+    await auditService.log({
+        userId: ownerId,
+        action: AuditAction.FILE_UPLOAD,
+        resource: file.originalname,
+    });
+
     // Step 6: Return metadata
     return res.status(201).json({
         message: "File uploaded successfully",
@@ -103,6 +108,12 @@ export async function downloadFile(req: Request, res: Response){
     encryptedFile,
     Buffer.from(file.iv)
 );
+
+await auditService.log({
+    userId: ownerId,
+    action: AuditAction.FILE_DOWNLOAD,
+    resource: file.filename,
+});
 
 res.setHeader("Content-Type", file.mimeType);
 
@@ -188,13 +199,19 @@ export async function deleteFile(req: Request, res: Response) {
             },
         });
 
+        await auditService.log({
+            userId: ownerId,
+            action: AuditAction.FILE_DELETE,
+            resource: file.filename,
+        });
+
         return res.status(200).json({
             message: "File deleted successfully",
         });
 
 
      } catch(error){
-        console.log("error");
+        console.error("Delete File Error:", error);
 
         return res.status(500).json({
             message: "Internal server error",
