@@ -44,12 +44,15 @@ const fileRouter = Router();
  *     responses:
  *       201:
  *         description: File uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UploadFileResponse'
  *       400:
  *         description: Invalid file or validation failed
  *       401:
  *         description: Unauthorized
  */
-
 fileRouter.post(
     "/",
     authenticate,
@@ -72,12 +75,17 @@ fileRouter.post(
  *       - in: path
  *         name: id
  *         required: true
+ *         description: File ID
  *         schema:
  *           type: string
- *         description: File ID
  *     responses:
  *       200:
  *         description: File downloaded successfully
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
  *       400:
  *         description: Invalid file ID
  *       401:
@@ -85,7 +93,6 @@ fileRouter.post(
  *       404:
  *         description: File not found
  */
-
 fileRouter.get(
     "/:id",
     authenticate,
@@ -106,10 +113,13 @@ fileRouter.get(
  *     responses:
  *       200:
  *         description: Files retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ListFilesResponse'
  *       401:
  *         description: Unauthorized
  */
-
 fileRouter.get(
     "/",
     authenticate,
@@ -130,12 +140,16 @@ fileRouter.get(
  *       - in: path
  *         name: id
  *         required: true
+ *         description: File ID
  *         schema:
  *           type: string
- *         description: File ID
  *     responses:
  *       200:
  *         description: File deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
  *       400:
  *         description: Invalid file ID
  *       401:
@@ -143,7 +157,6 @@ fileRouter.get(
  *       404:
  *         description: File not found
  */
-
 fileRouter.delete(
     "/:id",
     authenticate,
