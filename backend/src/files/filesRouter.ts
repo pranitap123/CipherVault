@@ -6,6 +6,7 @@ import {
     downloadFile,
     listFiles,
     deleteFile,
+    storageStats,
 } from "./filesController.js";
 import { fileIdSchema } from "../validations/file.validation.js";
 import {
@@ -63,6 +64,65 @@ fileRouter.post(
 
 /**
  * @openapi
+ * /files/stats:
+ *   get:
+ *     tags:
+ *       - Files
+ *     summary: Get storage statistics
+ *     description: Returns storage usage statistics for the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Storage statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 usedBytes:
+ *                   type: number
+ *                 quotaBytes:
+ *                   type: number
+ *                 fileCount:
+ *                   type: number
+ *       401:
+ *         description: Unauthorized
+ */
+fileRouter.get(
+    "/stats",
+    authenticate,
+    storageStats
+);
+
+/**
+ * @openapi
+ * /files:
+ *   get:
+ *     tags:
+ *       - Files
+ *     summary: List user files
+ *     description: Returns all files belonging to the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Files retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ListFilesResponse'
+ *       401:
+ *         description: Unauthorized
+ */
+fileRouter.get(
+    "/",
+    authenticate,
+    listFiles
+);
+
+/**
+ * @openapi
  * /files/{id}:
  *   get:
  *     tags:
@@ -98,32 +158,6 @@ fileRouter.get(
     authenticate,
     validateParams(fileIdSchema),
     downloadFile
-);
-
-/**
- * @openapi
- * /files:
- *   get:
- *     tags:
- *       - Files
- *     summary: List user files
- *     description: Returns all files belonging to the authenticated user.
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Files retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ListFilesResponse'
- *       401:
- *         description: Unauthorized
- */
-fileRouter.get(
-    "/",
-    authenticate,
-    listFiles
 );
 
 /**
