@@ -234,8 +234,20 @@ export const httpClient: SecureVaultApi = {
     throw new Error("Not implemented");
   },
 
-  async getDownloadUrl() {
-    throw new Error("Not implemented");
+  async getDownloadUrl(id) {
+    try {
+      const response = await http.get(`/files/${id}`, {
+        responseType: "blob",
+      });
+  
+      const blob = response.data;
+  
+      const url = window.URL.createObjectURL(blob);
+  
+      return ok(url);
+    } catch (error) {
+      return fail(error);
+    }
   },
 
   async storageStats() {

@@ -65,10 +65,30 @@ export function FilesPage() {
     }
   };
 
-  const download = async (id: string) => {
+  const download = async (id: string, filename: string) => {
     const res = await api.getDownloadUrl(id);
-    if (res.ok) push({ kind: "ok", text: "Download link ready (mock)." });
-    else push({ kind: "error", text: res.error.message });
+  
+    if (res.ok) {
+      const link = document.createElement("a");
+      link.href = res.data;
+      link.download = filename;
+  
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+  
+      window.URL.revokeObjectURL(res.data);
+  
+      push({
+        kind: "ok",
+        text: "File downloaded successfully.",
+      });
+    } else {
+      push({
+        kind: "error",
+        text: res.error.message,
+      });
+    }
   };
 
   return (
@@ -163,7 +183,7 @@ export function FilesPage() {
           file={active}
           onClose={() => setActive(null)}
           onFavorite={() => favorite(active.id)}
-          onDownload={() => download(active.id)}
+          onDownload={() => download(active.id, active.name)}
           onDelete={() => remove([active.id])}
         />
       )}
