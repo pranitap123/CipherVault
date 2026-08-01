@@ -131,9 +131,53 @@ export const httpClient: SecureVaultApi = {
     throw new Error("Not implemented");
   },
 
-  async uploadFile() {
-    throw new Error("Not implemented");
-  },
+  async uploadFile(file, onProgress) {
+    try {
+        const formData = new FormData();
+
+        formData.append("file", file);
+
+        const response = await http.post(
+            "/files",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+
+                onUploadProgress(progressEvent) {
+                    if (
+                        progressEvent.total &&
+                        onProgress
+                    ) {
+                        onProgress(
+                            progressEvent.loaded /
+                                progressEvent.total
+                        );
+                    }
+                },
+            }
+        );
+
+        const uploaded = response.data.file;
+
+        return ok({
+            id: uploaded.id,
+            ownerId: "",
+            name: uploaded.filename,
+            mimeType: uploaded.mimeType,
+            sizeBytes: Number(uploaded.sizeBytes),
+            status: "ready",
+            encrypted: true,
+            favorite: false,
+            createdAt: uploaded.createdAt,
+            updatedAt: uploaded.updatedAt,
+        });
+
+    } catch (error) {
+        return fail(error);
+    }
+},
 
   async deleteFile() {
     throw new Error("Not implemented");
