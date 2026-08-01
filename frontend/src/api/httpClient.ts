@@ -4,7 +4,6 @@ import type {
   ApiError,
   ApiResult,
   Session,
-  User,
 } from "../types";
 
 const http = axios.create({
@@ -86,7 +85,7 @@ export const httpClient: SecureVaultApi = {
     }
   },
 
-  async register(name, email, password) {
+  async register(_name, email, password) {
     try {
       const response = await http.post("/auth/register", {
         email,
@@ -124,12 +123,60 @@ export const httpClient: SecureVaultApi = {
   },
 
   async listFiles() {
-    throw new Error("Not implemented");
+    try {
+      const response = await http.get("/files");
+  
+      const files = response.data.files.map(
+        (file: {
+          id: string;
+          filename: string;
+          mimeType: string;
+          sizeBytes: string;
+          createdAt: string;
+          updatedAt?: string;
+        }) => ({
+          id: file.id,
+          ownerId: "",
+          name: file.filename,
+          mimeType: file.mimeType,
+          sizeBytes: Number(file.sizeBytes),
+          status: "ready" as const,
+          encrypted: true,
+          favorite: false,
+          createdAt: file.createdAt,
+          updatedAt: file.updatedAt ?? file.createdAt,
+        })
+      );
+  
+      return ok(files);
+    } catch (error) {
+      return fail(error);
+    }
   },
 
-  async getFile() {
-    throw new Error("Not implemented");
+  async getFile(id) {
+    try {
+      const response = await http.get(`/files/${id}`);
+  
+      const file = response.data.file;
+  
+      return ok({
+        id: file.id,
+        ownerId: "",
+        name: file.filename,
+        mimeType: file.mimeType,
+        sizeBytes: Number(file.sizeBytes),
+        status: "ready" as const,
+        encrypted: true,
+        favorite: false,
+        createdAt: file.createdAt,
+        updatedAt: file.updatedAt ?? file.createdAt,
+      });
+    } catch (error) {
+      return fail(error);
+    }
   },
+
 
   async uploadFile(file, onProgress) {
     try {

@@ -141,6 +141,7 @@ export async function listFiles(req: Request, res: Response) {
                 mimeType: true,
                 sizeBytes: true,
                 createdAt: true,
+                updatedAt: true,
             },
             orderBy: {
                 createdAt: "desc",
