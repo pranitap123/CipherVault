@@ -34,7 +34,7 @@ export async function uploadFile(req: Request, res: Response) {
     const extension = path.extname(file.originalname);
     const storedFilename = `${crypto.randomUUID()}${extension}`;
 
-    const uploadDirectory = "uploads";
+    const uploadDirectory = path.resolve("uploads");
 
     if (!fs.existsSync(uploadDirectory)) {
         fs.mkdirSync(uploadDirectory, {
@@ -165,6 +165,45 @@ export async function listFiles(req: Request, res: Response) {
         });
     }
 }
+
+export async function storageStats(req: Request, res: Response) {
+    try {
+      const ownerId = req.userId;
+  
+      if (!ownerId) {
+        return res.status(401).json({
+          message: "Unauthorized",
+        });
+      }
+  
+      const files = await prisma.file.findMany({
+        where: {
+          ownerId,
+        },
+        select: {
+          sizeBytes: true,
+        },
+      });
+  
+      const usedBytes = files.reduce(
+        (total, file) => total + Number(file.sizeBytes),
+        0
+      );
+  
+      return res.status(200).json({
+        usedBytes,
+        quotaBytes: 5 * 1024 * 1024 * 1024, // 5 GB
+        fileCount: files.length,
+      });
+  
+    } catch (error) {
+      console.error("Storage Stats Error:", error);
+  
+      return res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  }
 
 export async function deleteFile(req: Request, res: Response) {
      try{
