@@ -226,9 +226,15 @@ export const httpClient: SecureVaultApi = {
     }
 },
 
-  async deleteFile() {
-    throw new Error("Not implemented");
-  },
+async deleteFile(id) {
+  try {
+    await http.delete(`/files/${id}`);
+
+    return ok(null);
+  } catch (error) {
+    return fail(error);
+  }
+},
 
   async toggleFavorite() {
     throw new Error("Not implemented");
