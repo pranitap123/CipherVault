@@ -130,6 +130,7 @@ export const httpClient: SecureVaultApi = {
         (file: {
           id: string;
           filename: string;
+          originalFilename: string;
           mimeType: string;
           sizeBytes: string;
           createdAt: string;
@@ -138,6 +139,7 @@ export const httpClient: SecureVaultApi = {
           id: file.id,
           ownerId: "",
           name: file.filename,
+          originalFilename: file.originalFilename,
           mimeType: file.mimeType,
           sizeBytes: Number(file.sizeBytes),
           status: "ready" as const,
@@ -164,6 +166,7 @@ export const httpClient: SecureVaultApi = {
         id: file.id,
         ownerId: "",
         name: file.filename,
+        originalFilename: file.originalFilename,
         mimeType: file.mimeType,
         sizeBytes: Number(file.sizeBytes),
         status: "ready" as const,
@@ -212,6 +215,7 @@ export const httpClient: SecureVaultApi = {
             id: uploaded.id,
             ownerId: "",
             name: uploaded.filename,
+             originalFilename: uploaded.originalFilename,
             mimeType: uploaded.mimeType,
             sizeBytes: Number(uploaded.sizeBytes),
             status: "ready",
@@ -257,7 +261,18 @@ async deleteFile(id) {
   },
 
   async storageStats() {
-    throw new Error("Not implemented");
+    try {
+      const response = await http.get("/files/stats");
+  
+      return ok({
+        usedBytes: response.data.usedBytes,
+        quotaBytes: response.data.quotaBytes,
+        fileCount: response.data.fileCount,
+      });
+  
+    } catch (error) {
+      return fail(error);
+    }
   },
 
   async updateProfile() {
