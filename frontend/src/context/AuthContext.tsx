@@ -50,20 +50,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login: AuthState["login"] = async (email, password) => {
     const res = await api.login(email, password);
-    if (res.ok) {
-      persist(res.data);
-      return null;
+  
+    if (res.ok === false) {
+      return res.error.message;
     }
-    return res.error.message;
+  
+    persist(res.data);
+    return null;
   };
 
   const register: AuthState["register"] = async (name, email, password) => {
     const res = await api.register(name, email, password);
-    if (res.ok) {
-      persist(res.data);
-      return null;
+  
+    if (res.ok === false) {
+      return res.error.message;
     }
-    return res.error.message;
+  
+    persist(res.data);
+    return null;
   };
 
   const logout = async () => {
