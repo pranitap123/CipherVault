@@ -29,6 +29,7 @@ app.use(
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpec)
 );
+
 app.use("/health", healthRouter);
 app.use("/auth", authRouter);
 app.use("/files", fileRouter);
