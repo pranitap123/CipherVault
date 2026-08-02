@@ -66,7 +66,6 @@ export async function loginUser(email: string, password: string) {
         password,
         user.password
     );
-
     if (!passwordMatches) {
         throw new Error("Invalid email or password");
     }
