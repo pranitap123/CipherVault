@@ -52,6 +52,7 @@ export async function uploadFile(req: Request, res: Response) {
             ownerId,
             iv: new Uint8Array(iv),
             filename: storedFilename,
+            originalFilename: file.originalname,
             mimeType: file.mimetype,
             sizeBytes: BigInt(file.size),
             storagePath,
@@ -68,9 +69,14 @@ export async function uploadFile(req: Request, res: Response) {
     return res.status(201).json({
         message: "File uploaded successfully",
         file: {
-            ...uploadedFile,
-            sizeBytes: uploadedFile.sizeBytes.toString(),
-            iv: Buffer.from(uploadedFile.iv).toString("hex"),
+            id: uploadedFile.id,
+        filename: uploadedFile.filename,              // UUID stored on disk
+        originalFilename: uploadedFile.originalFilename, // User's original filename
+        mimeType: uploadedFile.mimeType,
+        sizeBytes: uploadedFile.sizeBytes.toString(),
+        createdAt: uploadedFile.createdAt,
+        updatedAt: uploadedFile.updatedAt,
+        iv: Buffer.from(uploadedFile.iv).toString("hex"),
         },
     });
 }
@@ -120,7 +126,8 @@ res.setHeader("Content-Type", file.mimeType);
     // Step 8: Tell the browser to download it
     res.setHeader(
         "Content-Disposition",
-        `attachment; filename="${file.filename}"`
+        `attachment; filename="${file.originalFilename}"`
+        
     );
 
     // Step 9: Send the original file
@@ -138,6 +145,7 @@ export async function listFiles(req: Request, res: Response) {
             select: {
                 id: true,
                 filename: true,
+                originalFilename: true,
                 mimeType: true,
                 sizeBytes: true,
                 createdAt: true,
