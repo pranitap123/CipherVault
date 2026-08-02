@@ -15,7 +15,8 @@ export type FileStatus = "ready" | "uploading" | "encrypting" | "error";
 export interface VaultFile {
   id: string;
   ownerId: string;
-  name: string;
+  name: string; // DEPRECATED: use originalFilename for display. name kept for backward compatibility.
+  originalFilename: string; // The user-facing filename to display everywhere in the UI
   mimeType: string;
   sizeBytes: number;
   status: FileStatus;
