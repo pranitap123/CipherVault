@@ -19,10 +19,22 @@ export function FilesPage() {
 
   const load = async () => {
     setLoading(true);
+  
     const res = await api.listFiles();
+  
     setLoading(false);
-    if (res.ok) setFiles(res.data);
-    else push({ kind: "error", text: res.error.message });
+  
+    if (res.ok === false) {
+      push({
+        kind: "error",
+        text: res.error.message,
+      });
+      return;
+    }
+    
+    setFiles(res.data);
+  
+    setFiles(res.data);
   };
 
   useEffect(() => { void load(); }, []);
@@ -32,7 +44,11 @@ export function FilesPage() {
     if (favoritesOnly) out = out.filter((f) => f.favorite);
     if (search.trim()) {
       const q = search.toLowerCase();
-      out = out.filter((f) => f.name.toLowerCase().includes(q));
+      // Search both originalFilename and name for backward compatibility
+      out = out.filter((f) => {
+        const displayName = f.originalFilename ?? f.name;   
+             return displayName.toLowerCase().includes(q);
+      });
     }
     return out;
   }, [files, search, favoritesOnly]);
@@ -49,7 +65,14 @@ export function FilesPage() {
   const remove = async (ids: string[]) => {
     for (const id of ids) {
       const res = await api.deleteFile(id);
-      if (!res.ok) { push({ kind: "error", text: res.error.message }); return; }
+    
+      if (!res.ok) {
+        push({
+          kind: "error",
+          text: "Failed to delete file",
+        });
+        return;
+      }
     }
     setFiles((prev) => prev.filter((f) => !ids.includes(f.id)));
     setSelected(new Set());
@@ -68,29 +91,24 @@ export function FilesPage() {
   const download = async (id: string, filename: string) => {
     const res = await api.getDownloadUrl(id);
   
-    if (res.ok) {
-      const link = document.createElement("a");
-      link.href = res.data;
-      link.download = filename;
-  
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-  
-      window.URL.revokeObjectURL(res.data);
-  
-      push({
-        kind: "ok",
-        text: "File downloaded successfully.",
-      });
-    } else {
+    if (!res.ok) {
       push({
         kind: "error",
-        text: res.error.message,
+        text: "Download failed",
       });
+      return;
     }
+  
+    const link = document.createElement("a");
+    link.href = res.data;
+    link.download = filename;
+  
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  
+    window.URL.revokeObjectURL(res.data);
   };
-
   return (
     <div className="flex gap-6">
       <div className="min-w-0 flex-1">
@@ -134,7 +152,7 @@ export function FilesPage() {
             <span>{selected.size} selected</span>
             <div className="flex gap-2">
               <Button variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
-              <Button variant="danger" onClick={() => remove([...selected])}>Delete</Button>
+              <Button variant="danger" onClick={() => remove(Array.from(selected))}>Delete</Button>
             </div>
           </div>
         )}
@@ -183,7 +201,7 @@ export function FilesPage() {
           file={active}
           onClose={() => setActive(null)}
           onFavorite={() => favorite(active.id)}
-          onDownload={() => download(active.id, active.name)}
+          onDownload={() => download(active.id, active.originalFilename || active.name)}
           onDelete={() => remove([active.id])}
         />
       )}
@@ -194,6 +212,7 @@ export function FilesPage() {
 function FileCard({ file, selected, onSelect, onOpen, onFavorite }: {
   file: VaultFile; selected: boolean; onSelect: () => void; onOpen: () => void; onFavorite: () => void;
 }) {
+  const displayName = file.originalFilename ?? file.name;  
   return (
     <div className={`card group relative p-4 transition-colors hover:border-base-600 ${selected ? "ring-2 ring-accent" : ""}`}>
       <input
@@ -201,14 +220,14 @@ function FileCard({ file, selected, onSelect, onOpen, onFavorite }: {
         checked={selected}
         onChange={onSelect}
         className="absolute left-3 top-3 h-4 w-4 accent-accent opacity-0 transition-opacity group-hover:opacity-100 checked:opacity-100"
-        aria-label={`Select ${file.name}`}
+        aria-label={`Select ${displayName}`}
       />
       <button onClick={onFavorite} className="focusable absolute right-3 top-3 text-ink-faint hover:text-warn" aria-label="Toggle favorite">
         <StarIcon filled={file.favorite} />
       </button>
       <button onClick={onOpen} className="focusable mt-3 flex w-full flex-col items-center gap-3 text-center">
         <FileGlyph mime={file.mimeType} />
-        <span className="line-clamp-2 break-all text-sm text-ink">{file.name}</span>
+        <span className="line-clamp-2 break-all text-sm text-ink">{displayName}</span>
       </button>
       <div className="mt-3 flex items-center justify-between text-xs text-ink-faint">
         <span>{formatBytes(file.sizeBytes)}</span>
@@ -235,27 +254,30 @@ function FileTable({ files, selected, onToggle, onOpen, onFavorite }: {
           </tr>
         </thead>
         <tbody>
-          {files.map((f) => (
-            <tr key={f.id} className="border-b border-line/60 last:border-0 hover:bg-base-850/60">
-              <td className="px-4 py-3">
-                <input type="checkbox" checked={selected.has(f.id)} onChange={() => onToggle(f.id)} className="h-4 w-4 accent-accent" aria-label={`Select ${f.name}`} />
-              </td>
-              <td className="px-4 py-3">
-                <button onClick={() => onOpen(f)} className="focusable flex items-center gap-2 text-left text-ink hover:text-accent">
-                  <FileGlyph mime={f.mimeType} small />
-                  <span className="truncate">{f.name}</span>
-                </button>
-              </td>
-              <td className="hidden px-4 py-3 text-ink-muted sm:table-cell">{fileKind(f.mimeType)}</td>
-              <td className="hidden px-4 py-3 text-ink-muted md:table-cell">{formatBytes(f.sizeBytes)}</td>
-              <td className="hidden px-4 py-3 text-ink-muted lg:table-cell">{formatDate(f.updatedAt)}</td>
-              <td className="px-4 py-3">
-                <button onClick={() => onFavorite(f.id)} className="focusable text-ink-faint hover:text-warn" aria-label="Toggle favorite">
-                  <StarIcon filled={f.favorite} />
-                </button>
-              </td>
-            </tr>
-          ))}
+          {files.map((f) => {
+            const displayName = f.originalFilename ?? f.name;
+            return (
+              <tr key={f.id} className="border-b border-line/60 last:border-0 hover:bg-base-850/60">
+                <td className="px-4 py-3">
+                  <input type="checkbox" checked={selected.has(f.id)} onChange={() => onToggle(f.id)} className="h-4 w-4 accent-accent" aria-label={`Select ${displayName}`} />
+                </td>
+                <td className="px-4 py-3">
+                  <button onClick={() => onOpen(f)} className="focusable flex items-center gap-2 text-left text-ink hover:text-accent">
+                    <FileGlyph mime={f.mimeType} small />
+                    <span className="truncate">{displayName}</span>
+                  </button>
+                </td>
+                <td className="hidden px-4 py-3 text-ink-muted sm:table-cell">{fileKind(f.mimeType)}</td>
+                <td className="hidden px-4 py-3 text-ink-muted md:table-cell">{formatBytes(f.sizeBytes)}</td>
+                <td className="hidden px-4 py-3 text-ink-muted lg:table-cell">{formatDate(f.updatedAt)}</td>
+                <td className="px-4 py-3">
+                  <button onClick={() => onFavorite(f.id)} className="focusable text-ink-faint hover:text-warn" aria-label="Toggle favorite">
+                    <StarIcon filled={f.favorite} />
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -265,7 +287,8 @@ function FileTable({ files, selected, onToggle, onOpen, onFavorite }: {
 function MetadataPanel({ file, onClose, onFavorite, onDownload, onDelete }: {
   file: VaultFile; onClose: () => void; onFavorite: () => void; onDownload: () => void; onDelete: () => void;
 }) {
-  const isImage = file.mimeType.startsWith("image/");
+const displayName = file.originalFilename ?? file.name;  
+const isImage = file.mimeType.startsWith("image/");
   return (
     <aside className="hidden w-72 shrink-0 xl:block">
       <div className="card sticky top-24 p-5">
@@ -285,7 +308,7 @@ function MetadataPanel({ file, onClose, onFavorite, onDownload, onDelete }: {
             <FileGlyph mime={file.mimeType} />
           )}
         </div>
-        <p className="break-all text-sm font-medium text-ink">{file.name}</p>
+        <p className="break-all text-sm font-medium text-ink">{displayName}</p>
         <dl className="mt-4 space-y-2 text-xs">
           <Row k="Type" v={fileKind(file.mimeType)} />
           <Row k="Size" v={formatBytes(file.sizeBytes)} />
