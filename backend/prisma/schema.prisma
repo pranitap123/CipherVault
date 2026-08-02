@@ -12,11 +12,13 @@ model File{
     ownerId String @map("owner_id")
     iv Bytes
     filename String
+    originalFilename String
     mimeType String @map("mime_type")
     sizeBytes BigInt @map("size_bytes")
     storagePath String @map("storage_path")
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
+
      @@map("files")
 }
 
@@ -26,6 +28,7 @@ model User{
   password String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  
    
   
   auditLogs   AuditLog[]
