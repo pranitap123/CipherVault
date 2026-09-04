@@ -4,6 +4,7 @@ import type { VaultFile } from "../types";
 import { formatBytes, formatDate, fileKind } from "../lib/format";
 import { UploadZone } from "../features/upload/UploadZone";
 import { Button, EmptyState, Spinner, useToast } from "../components/ui";
+import { Tilt } from "../components/ui/Tilt";
 
 type View = "grid" | "list";
 
@@ -173,14 +174,15 @@ export function FilesPage() {
           ) : view === "grid" ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {visible.map((f) => (
+                <Tilt key={f.id} strength={5}>
                 <FileCard
-                  key={f.id}
                   file={f}
                   selected={selected.has(f.id)}
                   onSelect={() => toggleSelect(f.id)}
                   onOpen={() => setActive(f)}
                   onFavorite={() => favorite(f.id)}
                 />
+                </Tilt>
               ))}
             </div>
           ) : (
