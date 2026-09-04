@@ -15,7 +15,7 @@ Built with a modern TypeScript stack, SecureVault focuses on security, clean arc
 - Protected Routes
 
 ### Secure File Storage
-- AES Encryption before storage
+- AES-256-GCM envelope encryption before storage
 - Secure File Upload
 - Download Encrypted Files
 - Delete Files
@@ -28,6 +28,7 @@ Built with a modern TypeScript stack, SecureVault focuses on security, clean arc
 - Input Validation
 - Password Hashing (bcrypt)
 - JWT Authorization
+- Role-Based Access Control (USER / ADMIN, enforced server-side on `/admin/*`)
 
 ### Backend
 - Express.js
@@ -70,7 +71,7 @@ Built with a modern TypeScript stack, SecureVault focuses on security, clean arc
 
 - JWT
 - bcrypt
-- AES Encryption
+- AES-256-GCM envelope encryption (per-file data keys, wrapped by a master key)
 - Helmet
 - Rate Limiter
 
@@ -194,7 +195,7 @@ http://localhost:3000/api-docs
 
 - JWT Authentication
 - Password Hashing using bcrypt
-- AES File Encryption
+- AES-256-GCM Envelope Encryption
 - Input Validation
 - Request Rate Limiting
 - Audit Logging
@@ -211,7 +212,7 @@ http://localhost:3000/api-docs
 - Secure File Upload
 - Secure File Download
 - File Management
-- AES Encryption
+- AES-256-GCM envelope encryption (per-file data keys, wrapped by a master key)
 - Swagger Documentation
 - Audit Logging
 - Rate Limiting
