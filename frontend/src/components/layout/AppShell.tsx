@@ -14,6 +14,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
+  const navItems =
+    user?.role === "ADMIN"
+      ? [...nav, { to: "/app/admin", label: "Admin", icon: ShieldIcon }]
+      : nav;
+
   const initials = (user?.name || "U")
     .split(" ")
     .map((s) => s[0])
@@ -31,10 +36,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <div className="flex h-16 items-center gap-2 px-5">
           <Logo />
-          <span className="font-semibold tracking-tight">SecureVault</span>
+          <span className="font-semibold tracking-tight">CipherVault</span>
         </div>
         <nav className="flex flex-col gap-1 px-3">
-          {nav.map((n) => (
+          {navItems.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
@@ -122,4 +127,7 @@ function GearIcon() {
 }
 function MenuIcon() {
   return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>;
+}
+function ShieldIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2 4 6v6c0 5 3.5 7.5 8 10 4.5-2.5 8-5 8-10V6l-8-4Z"/><path d="M9.5 12.5 11.2 14 15 10"/></svg>;
 }
