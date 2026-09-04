@@ -3,14 +3,63 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
+:root {
+  color-scheme: dark;
+  /* Same palette as tailwind.config.js, exposed as CSS vars for the
+     hand-built 3D components (AccessCore, VaultSwitch, VaultDrawer, VaultCore)
+     that need raw values for gradients/shadows Tailwind classes can't express. */
+  --obsidian: #0a0a0c;
+  --graphite: #16171c;
+  --steel: #2b2d33;
+  --steel-line: #38383f;
+  --brass: #c9963c;
+  --brass-glow: #f2c877;
+  --copper: #d1614a;
+  --mist: #ded9cf;
+  --mist-faint: #8b877e;
+}
+/* Kept as a no-op alias so earlier admin-only components that scoped to
+   `.admin-zone` keep working unchanged — the vars are global now. */
+.admin-zone { color: inherit; }
+
 * { -webkit-font-smoothing: antialiased; }
 body { @apply bg-base-950 text-ink font-sans; margin: 0; }
 
 @layer utilities {
-  .card { @apply bg-base-900 border border-line rounded-xl; }
+  .card {
+    @apply bg-base-900 border border-line rounded-xl transition-transform duration-200;
+  }
+  /* Every card in the app gets a small, real lift on hover — one consistent
+     physical response applied at the utility level, not per-card effects
+     sprinkled everywhere. */
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.45);
+  }
   .focusable { @apply outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-base-950; }
 }
+
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .card:hover { transform: none; }
+}
+
+@keyframes core-idle-spin {
+  from { transform: translateZ(0px) rotateZ(0deg); }
+  to   { transform: translateZ(0px) rotateZ(360deg); }
+}
+
+@keyframes drawer-unfold {
+  from { transform: rotateX(-18deg); opacity: 0; }
+  to   { transform: rotateX(0deg); opacity: 1; }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
