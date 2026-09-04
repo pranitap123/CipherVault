@@ -6,7 +6,12 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "rotate-key": "tsx scripts/rotateMasterKey.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

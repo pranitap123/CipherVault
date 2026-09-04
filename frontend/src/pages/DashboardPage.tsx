@@ -5,6 +5,8 @@ import type { StorageStats, VaultFile } from "../types";
 import { formatBytes, formatDate, fileKind } from "../lib/format";
 import { useAuth } from "../context/AuthContext";
 import { Spinner } from "../components/ui";
+import { Tilt } from "../components/ui/Tilt";
+import { VaultCore } from "../features/dashboard/VaultCore";
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -57,14 +59,24 @@ export function DashboardPage() {
         </div>
       ) : (
         <>
+          {/* Vault Core — the one bold 3D moment on this page, and it's live data:
+              the fill ring is real storage %, the label is the real file count. */}
+          <VaultCore
+            storagePercent={storagePercent}
+            fileCount={stats?.fileCount ?? 0}
+          />
+
           {/* Stats Grid - 4 columns on desktop, 2 on tablet, 1 on mobile */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Tilt strength={6}>
             <StatCard
               label="Total files"
               value={String(stats?.fileCount ?? 0)}
               icon={<FilesIcon />}
               accentColor="accent"
             />
+            </Tilt>
+            <Tilt strength={6}>
             <StatCard
               label="Storage used"
               value={formatBytes(stats?.usedBytes ?? 0)}
@@ -72,6 +84,8 @@ export function DashboardPage() {
               icon={<HardDriveIcon />}
               accentColor="accent"
             />
+            </Tilt>
+            <Tilt strength={6}>
             <StatCard
               label="Encryption"
               value="AES-256"
@@ -79,6 +93,8 @@ export function DashboardPage() {
               icon={<LockIcon />}
               accentColor="ok"
             />
+            </Tilt>
+            <Tilt strength={6}>
             <StatCard
               label="Last upload"
               value={lastUploadDate ? formatDate(lastUploadDate) : "—"}
@@ -86,6 +102,7 @@ export function DashboardPage() {
               icon={<CloudUploadIcon />}
               accentColor="accent"
             />
+            </Tilt>
           </div>
 
           {/* Storage Usage Card */}

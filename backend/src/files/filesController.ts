@@ -4,7 +4,14 @@ import path from "path";
 import crypto from "crypto";
 import prisma from "../config/prisma.js";
 import fsPromises from "fs/promises";
-import { encrypt, decrypt } from "../services/encryption.service.js";
+import {
+    generateDataKey,
+    encryptWithKey,
+    decryptWithKey,
+    wrapKey,
+    unwrapKey,
+    decryptLegacyV1,
+} from "../services/encryption.service.js";
 import { auditService } from "../audit/auditService.js";
 import { AuditAction } from "../audit/audit.types.js";
 
@@ -27,8 +34,13 @@ export async function uploadFile(req: Request, res: Response) {
         });
     }
 
-    // Step 3: Encrypt file
-    const { encrypted, iv } = encrypt(file.buffer);
+    // Step 3: Envelope-encrypt the file — a fresh DEK per file, the file
+    // encrypted with the DEK (AES-256-GCM), and the DEK itself wrapped under
+    // the master key. See services/encryption.service.ts for why.
+    const dataKey = generateDataKey();
+    const { encrypted, iv, authTag } = encryptWithKey(file.buffer, dataKey);
+    const { wrappedKey, keyIv, keyAuthTag } = wrapKey(dataKey);
+    dataKey.fill(0); // the raw DEK never needs to exist after this point
 
     // Step 4: Save encrypted file to disk
     const extension = path.extname(file.originalname);
@@ -51,6 +63,11 @@ export async function uploadFile(req: Request, res: Response) {
         data: {
             ownerId,
             iv: new Uint8Array(iv),
+            authTag: new Uint8Array(authTag),
+            wrappedKey: new Uint8Array(wrappedKey),
+            keyIv: new Uint8Array(keyIv),
+            keyAuthTag: new Uint8Array(keyAuthTag),
+            encVersion: 2,
             filename: storedFilename,
             originalFilename: file.originalname,
             mimeType: file.mimetype,
@@ -110,10 +127,36 @@ export async function downloadFile(req: Request, res: Response){
         }
  const encryptedFile = await fsPromises.readFile(file.storagePath);
 
- const decryptedFile = decrypt(
-    encryptedFile,
-    Buffer.from(file.iv)
-);
+ let decryptedFile: Buffer;
+ try {
+     if (file.encVersion === 2) {
+         if (!file.authTag || !file.wrappedKey || !file.keyIv || !file.keyAuthTag) {
+             throw new Error("File is marked as v2 but is missing envelope-encryption fields");
+         }
+         const dataKey = unwrapKey(
+             Buffer.from(file.wrappedKey),
+             Buffer.from(file.keyIv),
+             Buffer.from(file.keyAuthTag)
+         );
+         decryptedFile = decryptWithKey(
+             encryptedFile,
+             dataKey,
+             Buffer.from(file.iv),
+             Buffer.from(file.authTag)
+         );
+         dataKey.fill(0);
+     } else {
+         // Legacy v1 file, encrypted before the envelope-encryption migration.
+         decryptedFile = decryptLegacyV1(encryptedFile, Buffer.from(file.iv));
+     }
+ } catch (error) {
+     // GCM throws here if the ciphertext, IV, or auth tag were tampered with
+     // or don't match — this is the failure mode CBC could never produce.
+     console.error("Decryption failed (possible tampering):", error);
+     return res.status(500).json({
+         message: "File integrity check failed — this file may be corrupted or tampered with.",
+     });
+ }
 
 await auditService.log({
     userId: ownerId,
@@ -217,6 +260,13 @@ export async function deleteFile(req: Request, res: Response) {
      try{
 
         const ownerId = req.userId;
+
+        if(!ownerId){
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
         const fileId = Array.isArray(req.params.id)
     ? req.params.id[0]
     : req.params.id;

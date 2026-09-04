@@ -10,7 +10,20 @@ datasource db {
 model File{
     id String @id @default(uuid())
     ownerId String @map("owner_id")
+
+    // v2 (current): "iv" holds the 12-byte GCM IV for the file content.
+    // v1 (legacy, decrypt-only): "iv" holds the 16-byte CBC IV instead —
+    // encVersion is what tells the code which interpretation applies.
     iv Bytes
+
+    // Populated only for encVersion 2. Nullable so existing v1 rows (if any
+    // pre-date this migration) don't need backfilled values they can't have.
+    authTag Bytes? @map("auth_tag")
+    wrappedKey Bytes? @map("wrapped_key")
+    keyIv Bytes? @map("key_iv")
+    keyAuthTag Bytes? @map("key_auth_tag")
+    encVersion Int @default(1) @map("enc_version")
+
     filename String
     originalFilename String
     mimeType String @map("mime_type")
@@ -22,10 +35,16 @@ model File{
      @@map("files")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User{
   id String @id @default(uuid())
   email String @unique
   password String
+  role Role @default(USER)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   

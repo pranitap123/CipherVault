@@ -1,5 +1,7 @@
 import type { SecureVaultApi } from "./client";
 import type {
+  AdminFile,
+  AdminUser,
   ApiError,
   ApiResult,
   Session,
@@ -28,9 +30,17 @@ let user: User = {
   id: "u_" + rid(),
   email: "demo@securevault.app",
   name: "Demo User",
+  role: "ADMIN", // mock is set to ADMIN so the admin console is reachable without a real backend
   emailVerified: true,
   createdAt: "2025-01-04T10:00:00.000Z",
 };
+
+let adminUsers: AdminUser[] = [
+  { id: user.id, email: user.email, role: "ADMIN", createdAt: user.createdAt },
+  { id: "u_" + rid(), email: "priya@ciphervault.dev", role: "USER", createdAt: "2025-03-11T09:00:00.000Z" },
+  { id: "u_" + rid(), email: "sam@ciphervault.dev", role: "USER", createdAt: "2025-04-02T14:30:00.000Z" },
+  { id: "u_" + rid(), email: "ops-lead@ciphervault.dev", role: "ADMIN", createdAt: "2025-02-19T11:15:00.000Z" },
+];
 
 const QUOTA = 5 * 1024 * 1024 * 1024; // 5 GB
 
@@ -85,6 +95,7 @@ export const mockClient: SecureVaultApi = {
       id: "u_" + rid(),
       email,
       name,
+      role: "USER",
       emailVerified: false,
       createdAt: now(),
     };
@@ -210,5 +221,42 @@ export const mockClient: SecureVaultApi = {
     if (current.length < 6) return fail("invalid_credentials", "Your current password is incorrect.", 401);
     if (next.length < 8) return fail("weak_password", "Use at least 8 characters.", 422);
     return ok(null);
+  },
+
+  async listAllUsers() {
+    await delay(400);
+    return ok([...adminUsers]);
+  },
+
+  async listAllFiles() {
+    await delay(400);
+    const asAdminFiles: AdminFile[] = files.map((f) => ({
+      id: f.id,
+      ownerId: f.ownerId,
+      originalFilename: f.originalFilename,
+      mimeType: f.mimeType,
+      sizeBytes: f.sizeBytes,
+      createdAt: f.createdAt,
+      updatedAt: f.updatedAt,
+    }));
+    return ok(asAdminFiles);
+  },
+
+  async updateUserRole(userId, role) {
+    await delay(450);
+    if (userId === user.id && role === "USER") {
+      return fail("self_demote_blocked", "You cannot demote your own account.", 400);
+    }
+    const target = adminUsers.find((u) => u.id === userId);
+    if (!target) return fail("not_found", "That user no longer exists.", 404);
+    target.role = role;
+    return ok({ ...target });
+  },
+
+  async deleteAnyFile(fileId) {
+    await delay(300);
+    const existed = files.some((f) => f.id === fileId);
+    files = files.filter((f) => f.id !== fileId);
+    return existed ? ok(null) : fail("not_found", "That file no longer exists.", 404);
   },
 };

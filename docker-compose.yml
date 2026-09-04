@@ -1,0 +1,69 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ciphervault}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ciphervault}
+      POSTGRES_DB: ${POSTGRES_DB:-ciphervault}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ciphervault}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot job: applies pending Prisma migrations, then exits. `backend`
+  # waits for this to succeed before it starts, so the API container never
+  # boots against a schema it doesn't match.
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: build
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ciphervault}:${POSTGRES_PASSWORD:-ciphervault}@postgres:5432/${POSTGRES_DB:-ciphervault}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["npx", "prisma", "migrate", "deploy"]
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ciphervault}:${POSTGRES_PASSWORD:-ciphervault}@postgres:5432/${POSTGRES_DB:-ciphervault}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set — 32+ chars, no default in prod}
+      MASTER_KEY: ${MASTER_KEY:?MASTER_KEY must be set — 64 hex chars (32 bytes)}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  uploads_data:

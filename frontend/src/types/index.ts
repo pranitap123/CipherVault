@@ -2,10 +2,13 @@
 // Keep this file as the single source of truth for API shapes so that when the
 // real backend replaces the mock layer, only src/api/* changes — not the UI.
 
+export type Role = "USER" | "ADMIN";
+
 export interface User {
   id: string;
   email: string;
   name: string;
+  role: Role;
   emailVerified: boolean;
   createdAt: string; // ISO
 }
@@ -51,4 +54,22 @@ export interface AuthTokens {
 export interface Session {
   user: User;
   tokens: AuthTokens;
+}
+
+// --- admin (only meaningful when the caller's own role is "ADMIN") ---
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: Role;
+  createdAt: string;
+}
+
+export interface AdminFile {
+  id: string;
+  ownerId: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+  updatedAt: string;
 }

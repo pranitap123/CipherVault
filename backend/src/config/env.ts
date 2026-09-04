@@ -10,11 +10,15 @@ const envSchema = z.object({
         .string()
         .min(32, "JWT_SECRET must be at least 32 characters long"),
 
-    ENCRYPTION_KEY: z
+    // Renamed from ENCRYPTION_KEY: this key no longer encrypts file bytes
+    // directly (see services/encryption.service.ts) — it only wraps the
+    // per-file data keys. Calling it MASTER_KEY makes that distinction visible
+    // in the env, not just in a code comment.
+    MASTER_KEY: z
         .string()
         .length(
             64,
-            "ENCRYPTION_KEY must be exactly 64 hexadecimal characters"
+            "MASTER_KEY must be exactly 64 hexadecimal characters"
         ),
 
     DATABASE_URL: z
@@ -33,6 +37,6 @@ if (!parsedEnv.success) {
 export const env = {
     port: parsedEnv.data.PORT,
     jwtSecret: parsedEnv.data.JWT_SECRET,
-    encryptionKey: parsedEnv.data.ENCRYPTION_KEY,
+    masterKey: parsedEnv.data.MASTER_KEY,
     databaseUrl: parsedEnv.data.DATABASE_URL,
 };
