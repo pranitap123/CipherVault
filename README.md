@@ -64,46 +64,50 @@ CipherVault is a production-grade encrypted file storage platform with role-base
 
 ---
 
-## 📂 Project Structure
+## 📁 Project Structure
+
+```text
 CipherVault/
 ├── backend/
-│ ├── prisma/
-│ │ ├── migrations/
-│ │ ├── schema.prisma
-│ │ └── seed.ts
-│ ├── scripts/
-│ │ └── rotateMasterKey.ts
-│ ├── src/
-│ │ ├── admin/ # Admin routes & controllers
-│ │ ├── audit/ # Audit logging
-│ │ ├── auth/ # JWT & authentication
-│ │ ├── config/ # Environment & Prisma config
-│ │ ├── files/ # File upload/download/delete
-│ │ ├── middlewares/ # Auth, RBAC gates, error handling
-│ │ ├── services/ # Encryption & business logic
-│ │ ├── types/ # Express augmentation
-│ │ └── app.ts / server.ts
-│ ├── tests/ # Vitest unit + integration tests
-│ ├── Dockerfile # Multi-stage production build
-│ └── package.json
+│   ├── prisma/
+│   │   ├── migrations/
+│   │   ├── schema.prisma
+│   │   └── seed.ts
+│   ├── scripts/
+│   │   └── rotateMasterKey.ts
+│   ├── src/
+│   │   ├── admin/
+│   │   ├── audit/
+│   │   ├── auth/
+│   │   ├── config/
+│   │   ├── files/
+│   │   ├── middlewares/
+│   │   ├── services/
+│   │   ├── types/
+│   │   ├── app.ts
+│   │   └── server.ts
+│   ├── tests/
+│   ├── Dockerfile
+│   └── package.json
 │
 ├── frontend/
-│ ├── src/
-│ │ ├── api/ # API client (httpClient + mock)
-│ │ ├── components/ # UI components (Tilt, buttons, etc)
-│ │ ├── context/ # Auth context
-│ │ ├── features/ # Feature modules (admin, landing, auth, dashboard)
-│ │ ├── pages/ # Full-page components
-│ │ ├── types/ # TypeScript interfaces
-│ │ ├── index.css # Global styles + vault tokens
-│ │ └── App.tsx # Routing
-│ ├── Dockerfile # Nginx SPA serving
-│ ├── nginx.conf # SPA rewrites + gzip
-│ └── tailwind.config.js # Vault color palette
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── features/
+│   │   ├── pages/
+│   │   └── types/
+│   ├── App.tsx
+│   ├── Dockerfile
+│   ├── index.css
+│   ├── tailwind.config.js
+│   └── nginx.conf
 │
-├── docker-compose.yml # Full-stack orchestration
-├── .env.example # Environment template
+├── docker-compose.yml
+├── .env.example
 └── README.md
+```
 
 ---
 
