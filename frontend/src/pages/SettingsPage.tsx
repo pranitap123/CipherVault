@@ -79,7 +79,7 @@ function AppearanceTab() {
   return (
     <div className="card max-w-lg p-6">
       <h2 className="mb-4 text-sm font-semibold text-ink">Appearance</h2>
-      <p className="mb-4 text-sm text-ink-muted">SecureVault uses a dark theme tuned for long working sessions.</p>
+      <p className="mb-4 text-sm text-ink-muted">CipherVault uses a dark theme tuned for long working sessions.</p>
       <div className="flex flex-col gap-3">
         <span className="text-sm font-medium text-ink-muted">Density</span>
         <div className="flex gap-2">
