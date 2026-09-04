@@ -3,10 +3,11 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api";
 import { Button, Field, useToast } from "../components/ui";
+import { VaultDoor } from "../features/auth/VaultDoor";
 
 function AuthLayout({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
+    <div className="admin-zone grid min-h-screen lg:grid-cols-2">
       {/* Left: form */}
       <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
@@ -17,25 +18,36 @@ function AuthLayout({ title, subtitle, children }: { title: string; subtitle: st
                 <path d="m9 12 2 2 4-4" />
               </svg>
             </div>
-            <span className="text-lg font-semibold tracking-tight">SecureVault</span>
+            <span className="text-lg font-semibold tracking-tight">CipherVault</span>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           <p className="mt-1 mb-6 text-sm text-ink-muted">{subtitle}</p>
           {children}
         </div>
       </div>
-      {/* Right: brand panel */}
-      <div className="hidden items-center justify-center bg-base-900 p-12 lg:flex">
-        <div className="max-w-md">
-          <div className="mb-6 inline-flex rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
-            AES-256 · encrypted at rest
+      {/* Right: 3D vault-door hero */}
+      <div
+        className="relative hidden items-center justify-center overflow-hidden p-12 lg:flex"
+        style={{ background: "radial-gradient(120% 120% at 50% 0%, var(--graphite) 0%, var(--obsidian) 70%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "linear-gradient(var(--brass) 1px, transparent 1px), linear-gradient(90deg, var(--brass) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+        <div className="relative flex flex-col items-center gap-8">
+          <VaultDoor />
+          <div className="max-w-xs text-center">
+            <div className="mb-4 inline-flex rounded-full px-3 py-1 font-mono text-xs" style={{ background: "var(--steel)", color: "var(--brass-glow)" }}>
+              AES-256 · encrypted at rest
+            </div>
+            <p className="text-lg font-medium leading-snug" style={{ color: "var(--mist)" }}>
+              Your files are encrypted before they touch disk. Only you hold the keys to read them back.
+            </p>
           </div>
-          <p className="text-2xl font-medium leading-snug text-ink">
-            Your files are encrypted before they touch disk. Only you hold the keys to read them back.
-          </p>
-          <p className="mt-4 text-sm text-ink-faint">
-            Every upload is sealed server-side. No plaintext ever persists.
-          </p>
         </div>
       </div>
     </div>
@@ -45,8 +57,9 @@ function AuthLayout({ title, subtitle, children }: { title: string; subtitle: st
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("demo@securevault.app");
-  const [password, setPassword] = useState("password123");
+  const [searchParams] = useSearchParams();
+  const [email, setEmail] = useState(searchParams.get("email") ?? "demo@securevault.app");
+  const [password, setPassword] = useState(searchParams.get("password") ?? "password123");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
