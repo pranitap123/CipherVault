@@ -1,4 +1,6 @@
 import type {
+  AdminFile,
+  AdminUser,
   ApiResult,
   AuthTokens,
   Session,
@@ -49,4 +51,14 @@ export interface SecureVaultApi {
     current: string,
     next: string
   ): Promise<ApiResult<null>>;
+
+  // --- admin (server enforces this — these calls 403 for a non-admin caller
+  // regardless of what the UI shows) ---
+  listAllUsers(): Promise<ApiResult<AdminUser[]>>;
+  listAllFiles(): Promise<ApiResult<AdminFile[]>>;
+  updateUserRole(
+    userId: string,
+    role: "USER" | "ADMIN"
+  ): Promise<ApiResult<AdminUser>>;
+  deleteAnyFile(fileId: string): Promise<ApiResult<null>>;
 }

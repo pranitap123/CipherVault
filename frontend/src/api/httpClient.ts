@@ -285,4 +285,56 @@ async deleteFile(id) {
   async changePassword() {
     throw new Error("Not implemented");
   },
+
+  async listAllUsers() {
+    try {
+      const response = await http.get("/admin/users");
+      return ok(response.data.users);
+    } catch (error) {
+      return fail(error);
+    }
+  },
+
+  async listAllFiles() {
+    try {
+      const response = await http.get("/admin/files");
+      const files = response.data.files.map(
+        (file: {
+          id: string;
+          ownerId: string;
+          originalFilename: string;
+          mimeType: string;
+          sizeBytes: string;
+          createdAt: string;
+          updatedAt: string;
+        }) => ({
+          ...file,
+          sizeBytes: Number(file.sizeBytes),
+        })
+      );
+      return ok(files);
+    } catch (error) {
+      return fail(error);
+    }
+  },
+
+  async updateUserRole(userId, role) {
+    try {
+      const response = await http.patch(`/admin/users/${userId}/role`, {
+        role,
+      });
+      return ok(response.data.user);
+    } catch (error) {
+      return fail(error);
+    }
+  },
+
+  async deleteAnyFile(fileId) {
+    try {
+      await http.delete(`/admin/files/${fileId}`);
+      return ok(null);
+    } catch (error) {
+      return fail(error);
+    }
+  },
 };
