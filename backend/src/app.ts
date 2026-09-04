@@ -1,7 +1,10 @@
+/// <reference path="./types/express.d.ts" />
+
 import express from "express";
 import healthRouter from "./routes/health.route.js";
 import authRouter from "./auth/authRouter.js";
 import fileRouter from "./files/filesRouter.js";
+import adminRouter from "./admin/adminRouter.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { logger } from "./middlewares/logger.js";
 import helmet from "helmet";
@@ -33,6 +36,7 @@ app.use(
 app.use("/health", healthRouter);
 app.use("/auth", authRouter);
 app.use("/files", fileRouter);
+app.use("/admin", adminRouter);
 
 
 app.use(errorHandler);
