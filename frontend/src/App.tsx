@@ -9,12 +9,22 @@ import {
 import { DashboardPage } from "./pages/DashboardPage";
 import { FilesPage } from "./pages/FilesPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { AdminPage } from "./pages/AdminPage";
+import { LandingPage } from "./pages/LandingPage";
 import type { ReactNode } from "react";
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="grid min-h-screen place-items-center text-ink-muted"><Spinner /></div>;
   if (!user) return <Navigate to="/login" replace />;
+  return <AppShell>{children}</AppShell>;
+}
+
+function AdminOnly({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="grid min-h-screen place-items-center text-ink-muted"><Spinner /></div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== "ADMIN") return <Navigate to="/app" replace />;
   return <AppShell>{children}</AppShell>;
 }
 
@@ -31,6 +41,7 @@ export default function App() {
       <ToastProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
             <Route path="/register" element={<PublicOnly><RegisterPage /></PublicOnly>} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -40,7 +51,8 @@ export default function App() {
             <Route path="/app" element={<Protected><DashboardPage /></Protected>} />
             <Route path="/app/files" element={<Protected><FilesPage /></Protected>} />
             <Route path="/app/settings" element={<Protected><SettingsPage /></Protected>} />
-            <Route path="*" element={<Navigate to="/app" replace />} />
+            <Route path="/app/admin" element={<AdminOnly><AdminPage /></AdminOnly>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </ToastProvider>
